@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -14,15 +15,27 @@ datasource db {
 }
 
 model Image {
-  uuid String @default(uuid()) @id
-  name String
-  meta_data Json
+  uuid         String         @id @default(uuid())
+  name         String         @unique
+  meta_data    Json
   image_s3_url String
+  created_at   DateTime       @default(now())
+  ImageProduct ImageProduct[]
+}
+
+model ImageProduct {
+  uuid         String  @id @default(uuid())
+  image        Image   @relation(fields: [image_uuid], references: [uuid])
+  image_uuid   String
+  product      Product @relation(fields: [product_uuid], references: [uuid])
+  quantity     Int
+  product_uuid String
 }
 
 model Product {
-  uuid String @default(uuid()) @id
-  asin String @unique
-  name String
-  quantity Int
+  uuid         String         @id @default(uuid())
+  asin         String         @unique
+  name         String
+  created_at   DateTime       @default(now())
+  ImageProduct ImageProduct[]
 }
