@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     });
 
     const imageUrls = imageUrlRecords.map(record => record.image_s3_url);
-    console.log(imageUrls)
+
     return new NextResponse(JSON.stringify(imageUrls), {
       status: 200,
       headers: {

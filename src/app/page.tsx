@@ -44,7 +44,6 @@ export default function Home() {
 
       // Wait for all fetch requests to complete
       const resolvedUrls = await Promise.all(fetchPromises);
-      console.log(resolvedUrls)
 
       // Set the image URLs in the state
       setImageUrls(resolvedUrls[0]);
@@ -53,9 +52,9 @@ export default function Home() {
       // Handle errors, perhaps set an error state or retry logic
     }
   }
-  console.log(imageUrls)
+
   return(
-    <div className="container mx-auto">
+    <div className="flex flex-col gap-4 container mx-auto">
       <Card className="flex flex-col justify-items-center justify-center w-auto">
       <CardHeader>
         <CardTitle>Bin Sense AI</CardTitle>
@@ -79,13 +78,13 @@ export default function Home() {
         <Button onClick={lookup}>Look up!</Button>
       </CardFooter>
       </Card>
-      <Card>
+      <Card className="flex flex-row gap-4">
         {imageUrls.map((url) => 
           <Image
             key={url}
             src={url}
-            width={500}
-            height={500}
+            width={200}
+            height={200}
             alt="Picture of the author"
           />
         )}
