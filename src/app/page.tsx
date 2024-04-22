@@ -11,6 +11,7 @@ import Image from 'next/image'
 export default function Home() {
   const [rows, setRows] = useState([{id: 1, uuid: "", quantity: 0}])
   const [imageUrls, setImageUrls] = useState<string[]>([])
+  const [productNames, setProductNames] = useState<string[]>([])
   const addRow = () => {
     const newRow = {
       id: rows.length + 1,
@@ -34,19 +35,28 @@ export default function Home() {
     try {
       // Map each row to a fetch promise, fetching the image urls from the server
       const fetchPromises = rows.map((row) => 
-          fetch(`/api/products/${row.uuid}?quantity=${row.quantity}`).then(response => {
-              if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              return response.json();  // Assuming the server returns JSON with the URL data
-          })
+        fetch(`/api/products/${row.uuid}?quantity=${row.quantity}`).then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();  // Assuming the server returns JSON with the URL data
+        })
       );
 
       // Wait for all fetch requests to complete
-      const resolvedUrls = await Promise.all(fetchPromises);
+      const resolvedPromises = await Promise.all(fetchPromises);
+
+      const urls = resolvedPromises
+        .map((promise) => promise.map((item: { image_s3_url: string; }) => item.image_s3_url))
+        .flatMap(url => url);
+
+      const productNames = resolvedPromises
+        .map((promise) => promise.map((item: { product_name: string; }) => item.product_name))
+        .flatMap(name => name)
 
       // Set the image URLs in the state
-      setImageUrls(resolvedUrls[0]);
+      setImageUrls(urls);
+      setProductNames(productNames)
     } catch (error) {
       console.error('Failed to fetch image URLs:', error);
       // Handle errors, perhaps set an error state or retry logic
@@ -67,7 +77,8 @@ export default function Home() {
         {rows.map((row) => {
           return (
             <div className="p-4 flex justify-center gap-4" key={row.id}>
-              <ProductPicker uuidCallback={(uuid) => handleInputChange(row.id, uuid, row.quantity)}/>
+              <ProductPicker 
+                uuidCallback={(uuid) => handleInputChange(row.id, uuid, row.quantity)} />
               <QuantityEdit quantityCallback={(q) => handleInputChange(row.id, row.uuid, q)}/>
             </div>
           )
@@ -78,15 +89,26 @@ export default function Home() {
         <Button onClick={lookup}>Look up!</Button>
       </CardFooter>
       </Card>
-      <Card className="flex flex-row gap-4">
-        {imageUrls.map((url) => 
-          <Image
-            key={url}
-            src={url}
-            width={200}
-            height={200}
-            alt="Picture of the author"
-          />
+      <Card className="grid grid-cols-3 gap-4 p-4">
+        {imageUrls.map((url, index) => url ?
+          <div className="w-auto h-auto" key={index}>
+            <Image
+              src={url}
+              className="rounded-lg"
+              width={400}
+              height={400}
+              alt="Bin Picture"
+          /><div className="text-wrap">{productNames[index]}</div></div> 
+          : <div key={index}>
+              <Image 
+                src="https://demofree.sirv.com/nope-not-here.jpg" 
+                className="rounded-lg"
+                width={400}
+                height={400}
+                alt="Not Found Image"
+              />
+              <div className="text-wrap">{productNames[index]}</div>
+            </div>
         )}
       </Card>
     </div>

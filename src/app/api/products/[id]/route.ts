@@ -19,10 +19,28 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         quantity
       },
       select: {
-        image_uuid: true
+        image_uuid: true,
+        product_uuid: true
       }
     });
-
+    
+    const productName = await prisma.product.findUnique({
+      where: {
+        uuid: productUuid
+      },
+      select: {
+        name: true
+      }
+    })
+    let imageProducts: Array<{product_uuid: string, product_name: string | undefined, image_uuid: string | undefined}> = []
+    if (imageProductRecords.length == 0) {
+      imageProducts.push({product_uuid: productUuid, product_name: productName?.name, image_uuid: undefined})
+    } else {
+      for (const record of imageProductRecords) {
+        imageProducts.push({...record, product_name: productName?.name})
+      }
+    }
+    // filter by the record results, meaning some products that do not have images will not be on this list
     const imageUuids = imageProductRecords.map(record => record.image_uuid);
 
     const imageUrlRecords = await prisma.image.findMany({
@@ -32,11 +50,21 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         }
       },
       select: {
-        image_s3_url: true
+        image_s3_url: true,
+        uuid: true
       }
     });
-
-    const imageUrls = imageUrlRecords.map(record => record.image_s3_url);
+    
+    const imageUrls = imageProducts.map(imageProduct => {
+      // Attempt to find a corresponding image URL record.
+      const imageUrlRecord = imageUrlRecords.find(record => record.uuid === imageProduct.image_uuid);
+      
+      // Construct the new object with either the found URL or undefined.
+      return {
+        ...imageProduct,
+        image_s3_url: imageUrlRecord ? imageUrlRecord.image_s3_url : undefined
+      };
+    });
 
     return new NextResponse(JSON.stringify(imageUrls), {
       status: 200,
@@ -44,6 +72,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         'Content-Type': 'application/json'
       }
     });
+  
   } catch (error) {
     console.error('Failed to fetch product names:', error);
     return new NextResponse(JSON.stringify({ error: 'Failed to fetch product names' }), {
