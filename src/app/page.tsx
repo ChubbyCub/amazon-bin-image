@@ -12,6 +12,7 @@ export default function Home() {
   const [rows, setRows] = useState([{id: 1, uuid: "", quantity: 0}])
   const [imageUrls, setImageUrls] = useState<string[]>([])
   const [productNames, setProductNames] = useState<string[]>([])
+  const [quantities, setQuantities] = useState<number[]>([])
   const addRow = () => {
     const newRow = {
       id: rows.length + 1,
@@ -54,9 +55,14 @@ export default function Home() {
         .map((promise) => promise.map((item: { product_name: string; }) => item.product_name))
         .flatMap(name => name)
 
+      const binQuantity = resolvedPromises
+        .map((promise) => promise.map((item: { quantity: number }) => item.quantity))
+        .flatMap(q => q)
+
       // Set the image URLs in the state
       setImageUrls(urls);
       setProductNames(productNames)
+      setQuantities(binQuantity)
     } catch (error) {
       console.error('Failed to fetch image URLs:', error);
       // Handle errors, perhaps set an error state or retry logic
@@ -98,7 +104,7 @@ export default function Home() {
               width={400}
               height={400}
               alt="Bin Picture"
-          /><div className="text-wrap">{productNames[index]}</div></div> 
+          /><div className="text-wrap">{productNames[index]}</div>-<div>{quantities[index]}</div></div> 
           : <div key={index}>
               <Image 
                 src="https://demofree.sirv.com/nope-not-here.jpg" 
@@ -107,7 +113,7 @@ export default function Home() {
                 height={400}
                 alt="Not Found Image"
               />
-              <div className="text-wrap">{productNames[index]}</div>
+              <div className="text-wrap">{productNames[index]}</div>-<div>{quantities[index]}</div>
             </div>
         )}
       </Card>

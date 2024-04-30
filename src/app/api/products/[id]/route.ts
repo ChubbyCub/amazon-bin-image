@@ -20,7 +20,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       },
       select: {
         image_uuid: true,
-        product_uuid: true
+        product_uuid: true,
+        quantity: true
       }
     });
     
@@ -32,9 +33,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         name: true
       }
     })
-    let imageProducts: Array<{product_uuid: string, product_name: string | undefined, image_uuid: string | undefined}> = []
+    let imageProducts: Array<
+      {product_uuid: string, product_name: string | undefined, quantity: number, image_uuid: string | undefined}
+    > = []
     if (imageProductRecords.length == 0) {
-      imageProducts.push({product_uuid: productUuid, product_name: productName?.name, image_uuid: undefined})
+      imageProducts.push({product_uuid: productUuid, product_name: productName?.name, quantity: 0, image_uuid: undefined})
     } else {
       for (const record of imageProductRecords) {
         imageProducts.push({...record, product_name: productName?.name})
