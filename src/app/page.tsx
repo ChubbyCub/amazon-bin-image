@@ -99,7 +99,7 @@ export default function Home() {
       </CardFooter>
       </Card>
       <Card className="grid grid-cols-3 gap-4 p-4">
-        {imageUrls.map((url, index) => url ?
+        {imageUrls.map((url, index) =>
           <div className="w-auto h-auto" key={index}>
             <Image
               src={url}
@@ -108,16 +108,17 @@ export default function Home() {
               height={400}
               alt="Bin Picture"
           /></div> 
-          : <div key={index}>
-              <Image 
-                src="https://demofree.sirv.com/nope-not-here.jpg" 
-                className="rounded-lg"
-                width={400}
-                height={400}
-                alt="Not Found Image"
-              />
-            </div>
         )}
+        {imageUrls.length === 0 ? <div>
+          <Image 
+            src="https://demofree.sirv.com/nope-not-here.jpg" 
+            className="rounded-lg"
+            width={400}
+            height={400}
+            alt="Not Found Image"
+          />
+        </div> : <></>
+        }
       </Card>
     </div>
     
