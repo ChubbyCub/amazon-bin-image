@@ -35,34 +35,37 @@ export default function Home() {
   const lookup = async () => {
     try {
       // Map each row to a fetch promise, fetching the image urls from the server
-      const fetchPromises = rows.map((row) => 
-        fetch(`/api/products/${row.uuid}?quantity=${row.quantity}`).then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();  // Assuming the server returns JSON with the URL data
-        })
-      );
-
+      // const fetchPromises = rows.map((row) => 
+      //   fetch(`/api/products/${row.uuid}?quantity=${row.quantity}`).then(response => {
+      //     if (!response.ok) {
+      //       throw new Error(`HTTP error! status: ${response.status}`);
+      //     }
+      //     return response.json();  // Assuming the server returns JSON with the URL data
+      //   })
+      // );
+      const fetchPromises = async () => {
+        const quantities = rows.map(row => row.quantity);
+        const ids = rows.map(row => row.uuid);
+        const response = await fetch(`/api/products/images?ids=${ids}&quantities=${quantities}`);
+        return response.json()
+      }
       // Wait for all fetch requests to complete
-      const resolvedPromises = await Promise.all(fetchPromises);
+      const urls = await fetchPromises();
 
-      const urls = resolvedPromises
-        .map((promise) => promise.map((item: { image_s3_url: string; }) => item.image_s3_url))
-        .flatMap(url => url);
+      // const urls = resolvedPromises
+      //   .map((promise) => promise.map((item: { image_s3_url: string; }) => item.image_s3_url))
+      //   .flatMap(url => url);
 
-      const productNames = resolvedPromises
-        .map((promise) => promise.map((item: { product_name: string; }) => item.product_name))
-        .flatMap(name => name)
+      // const productNames = resolvedPromises
+      //   .map((promise) => promise.map((item: { product_name: string; }) => item.product_name))
+      //   .flatMap(name => name)
 
-      const binQuantity = resolvedPromises
-        .map((promise) => promise.map((item: { quantity: number }) => item.quantity))
-        .flatMap(q => q)
+      // const binQuantity = resolvedPromises
+      //   .map((promise) => promise.map((item: { quantity: number }) => item.quantity))
+      //   .flatMap(q => q)
 
       // Set the image URLs in the state
       setImageUrls(urls);
-      setProductNames(productNames)
-      setQuantities(binQuantity)
     } catch (error) {
       console.error('Failed to fetch image URLs:', error);
       // Handle errors, perhaps set an error state or retry logic
@@ -104,7 +107,7 @@ export default function Home() {
               width={400}
               height={400}
               alt="Bin Picture"
-          /><div className="text-wrap">{productNames[index]}</div>-<div>{quantities[index]}</div></div> 
+          /></div> 
           : <div key={index}>
               <Image 
                 src="https://demofree.sirv.com/nope-not-here.jpg" 
@@ -113,7 +116,6 @@ export default function Home() {
                 height={400}
                 alt="Not Found Image"
               />
-              <div className="text-wrap">{productNames[index]}</div>-<div>{quantities[index]}</div>
             </div>
         )}
       </Card>

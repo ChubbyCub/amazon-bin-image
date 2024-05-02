@@ -9,7 +9,6 @@ export async function GET(request: Request) {
     // Fetch product names from the database
     const productNames = await prisma.product.findMany({
       select: { asin: true, name: true, uuid: true },
-      take: 100
     });
 
     return new NextResponse(JSON.stringify(productNames), {
